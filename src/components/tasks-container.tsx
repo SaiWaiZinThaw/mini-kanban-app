@@ -1,42 +1,71 @@
+import { useEffect, useState } from "react";
 import type { TaskType } from "@/utils/types/type";
 import TaskCard from "./task-card";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
-import { useState } from "react";
-const TasksContainer = ({
-  tasks,
-  setTasks,
-}: {
-  tasks: TaskType[];
-  setTasks: React.Dispatch<React.SetStateAction<TaskType[]>>;
-}) => {
+import {
+  auth,
+  collection,
+  db,
+  doc,
+  onSnapshot,
+  query,
+  updateDoc,
+  where,
+} from "@/utils/firebase";
+
+const TasksContainer = () => {
+  const [tasks, setTasks] = useState<TaskType[]>([]);
+
+  useEffect(() => {
+    if (!auth.currentUser) return;
+
+    const q = query(
+      collection(db, "tasks"),
+      where("userId", "==", auth.currentUser.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const updatedTasks = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as TaskType[];
+      setTasks(updatedTasks);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const toDoTasks = tasks.filter((task) => task.status === "todo");
   const inProgressTasks = tasks.filter((task) => task.status === "in-progress");
   const doneTasks = tasks.filter((task) => task.status === "done");
-  const [isDropDisabled, setIsDropDisabled] = useState(false);
+
   const onDragEnd = (result: any) => {
     const { destination, source, draggableId } = result;
-    if (!destination) return setIsDropDisabled(true);
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    )
-      return setIsDropDisabled(true);
 
-    const sourceTask = tasks.find((task) => String(task.id) === draggableId);
-    if (!sourceTask) return setIsDropDisabled(true);
-    const updatedTasks = tasks.filter((task) => task.id !== sourceTask.id);
+    if (
+      !destination ||
+      (destination.droppableId === source.droppableId &&
+        destination.index === source.index)
+    ) {
+      return;
+    }
+
+    const taskToUpdate = tasks.find((task) => task.id === draggableId);
+    if (!taskToUpdate) return;
+
     const updatedTask = {
-      ...sourceTask,
+      ...taskToUpdate,
       status: destination.droppableId,
     };
-    const destinationTasks = updatedTasks.filter(
-      (task) => task.status === destination.droppableId
+
+    setTasks((prev) =>
+      prev.map((task) => (task.id === draggableId ? updatedTask : task))
     );
-    destinationTasks.splice(destination.index, 0, updatedTask);
-    const remainingTasks = updatedTasks.filter(
-      (task) => task.status !== destination.droppableId
-    );
-    setTasks([...remainingTasks, ...destinationTasks]);
+
+    const taskRef = doc(db, "tasks", draggableId);
+    updateDoc(taskRef, {
+      status: destination.droppableId,
+    });
   };
 
   return (
@@ -51,7 +80,7 @@ const TasksContainer = ({
             ignoreContainerClipping={true}
             type="group"
             droppableId="todo"
-            isDropDisabled={isDropDisabled}
+            isDropDisabled={false}
             isCombineEnabled={true}
           >
             {(provided) => (
@@ -96,7 +125,7 @@ const TasksContainer = ({
             ignoreContainerClipping={true}
             type="group"
             droppableId="in-progress"
-            isDropDisabled={isDropDisabled}
+            isDropDisabled={false}
             isCombineEnabled={true}
           >
             {(provided) => (
@@ -142,7 +171,7 @@ const TasksContainer = ({
             ignoreContainerClipping={true}
             type="group"
             droppableId="done"
-            isDropDisabled={isDropDisabled}
+            isDropDisabled={false}
             isCombineEnabled={true}
           >
             {(provided) => (

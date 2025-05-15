@@ -18,6 +18,7 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
+import type { TaskType } from "./types/type";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDX8NvWaoLkzRCoJYr7gmO_Puu3YH9YRi4",
@@ -34,7 +35,28 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
+const createTask = async (userId: string, taskData: Omit<TaskType, "id">) => {
+  try {
+    const tasksRef = collection(db, "tasks");
+    await addDoc(tasksRef, {
+      ...taskData,
+      userId,
+    });
+  } catch (error) {
+    console.error("Error creating task:", error);
+  }
+};
+
+const deleteTask = async (taskId: string) => {
+  try {
+    await deleteDoc(doc(db, "tasks", taskId));
+  } catch (error) {
+    console.error("Error deleting task:", error);
+  }
+};
 export {
+  createTask,
+  deleteTask,
   db,
   auth,
   provider,

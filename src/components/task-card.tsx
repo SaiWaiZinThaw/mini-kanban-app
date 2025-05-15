@@ -6,15 +6,32 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import type { DraggableProvided } from "react-beautiful-dnd";
 import { RiDraggable } from "react-icons/ri";
 import { cn } from "@/lib/utils";
-import { CheckCheck, Circle, Clock, Trash2 } from "lucide-react";
+import { CheckCheck, Circle, Clock } from "lucide-react";
 import TaskEditDialog from "./task-edit-dialog";
+import { cva } from "class-variance-authority";
+import DeleteConfirmButton from "./delete-confirm-button";
+
+const taskCardVariants = cva(
+  "border-2 border-r-4 border-b-4 !gap-0  w-full h-26 my-1 relative pl-8",
+  {
+    variants: {
+      variant: {
+        todo: "bg-[#2196F3]",
+        "in-progress": "bg-[#FFC107]",
+        done: "bg-[#C8E6C9]",
+      },
+    },
+    defaultVariants: {
+      variant: "todo",
+    },
+  }
+);
+
 const TaskCard = ({
   variant,
   task,
-  ref,
   tasks,
   setTasks,
 }: {
@@ -22,18 +39,9 @@ const TaskCard = ({
   variant?: "todo" | "in-progress" | "done";
   tasks: TaskType[];
   setTasks: React.Dispatch<React.SetStateAction<TaskType[]>>;
-  ref?: DraggableProvided["innerRef"];
 }) => {
   return (
-    <Card
-      ref={ref}
-      className={cn(
-        "border-2 border-r-4 border-b-4 !gap-0  w-full h-26 my-1 relative pl-8",
-        (variant === "todo" && "bg-[#2196F3]") ?? "",
-        (variant === "in-progress" && "bg-[#FFC107]") ?? "",
-        (variant === "done" && "bg-[#C8E6C9]") ?? ""
-      )}
-    >
+    <Card className={cn(taskCardVariants({ variant }))}>
       {variant === "in-progress" ? (
         <Clock className="absolute top-2 left-2 w-5 h-5 text-black font-bold" />
       ) : variant === "done" ? (
@@ -61,7 +69,7 @@ const TaskCard = ({
             tasks={tasks}
             initialTask={task}
           />
-          <Trash2 className="w-5 h-5 cursor-pointer text-destructive" />
+          <DeleteConfirmButton id={task.id} />
         </div>
       </CardHeader>
       <CardContent>

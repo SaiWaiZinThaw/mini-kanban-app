@@ -6,7 +6,6 @@ import {
   FormLabel,
   FormMessage,
 } from "./ui/form";
-import { v4 as uuid } from "uuid";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { TaskCreateSchema } from "@/utils/schema/schema";
@@ -18,19 +17,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./ui/alert-dialog";
-import type { TaskType } from "@/utils/types/type";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertDialogDescription } from "@radix-ui/react-alert-dialog";
 import { X } from "lucide-react";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth, createTask } from "@/utils/firebase";
 
-const TaskCreateDialog = ({
-  tasks,
-  setTasks,
-}: {
-  tasks: TaskType[];
-  setTasks: React.Dispatch<React.SetStateAction<TaskType[]>>;
-}) => {
+const TaskCreateDialog = () => {
   const form = useForm<z.infer<typeof TaskCreateSchema>>({
     resolver: zodResolver(TaskCreateSchema),
     defaultValues: {
@@ -39,19 +33,17 @@ const TaskCreateDialog = ({
       status: "todo",
     },
   });
-
+  const [user] = useAuthState(auth);
   const [open, setOpen] = useState(false);
 
-  const onSubmit = (values: z.infer<typeof TaskCreateSchema>) => {
-    console.log(form.formState);
-    setTasks([...tasks, { ...values, id: uuid() }]);
+  const onSubmit = async (values: z.infer<typeof TaskCreateSchema>) => {
+    if (!user) return;
+
+    await createTask(user.uid, values);
+
     setOpen(false);
     form.reset();
   };
-
-  useEffect(() => {
-    console.log(tasks);
-  }, [tasks, setTasks]);
 
   return (
     <AlertDialog open={open}>

@@ -1,8 +1,9 @@
-import { Button } from "@/components/ui/button";
+import LoadingButton from "@/components/loading-button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -22,7 +23,12 @@ import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import type { z } from "zod";
 
-const SignIn = () => {
+const SignIn = ({
+  setAuthpage,
+}: {
+  setAuthpage: React.Dispatch<React.SetStateAction<string>>;
+}) => {
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const methods = useForm<z.infer<typeof AuthSchema>>({
     resolver: zodResolver(AuthSchema),
@@ -33,11 +39,14 @@ const SignIn = () => {
   });
 
   const handleSubmit = async (values: z.infer<typeof AuthSchema>) => {
+    setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
     } catch (err: any) {
       console.log(err);
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -49,7 +58,7 @@ const SignIn = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <CardDescription className="text-center text-lg">
+          <CardDescription className="text-center text-lg mb-2">
             Sign in to get started!
           </CardDescription>
           <FormProvider {...methods}>
@@ -78,17 +87,30 @@ const SignIn = () => {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your password" {...field} />
+                      <Input
+                        placeholder="Enter your password"
+                        type="password"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               {error && <p className="text-red-500">{error}</p>}
-              <Button type="submit">Sign In</Button>
+              <LoadingButton isLoading={loading}>Sign In</LoadingButton>
             </form>
           </FormProvider>
         </CardContent>
+        <CardFooter className="flex w-full text-sm justify-between mt-2">
+          No Account yet?
+          <span
+            className="cursor-pointer text-secondary-foreground flex  justify-self-end"
+            onClick={() => setAuthpage("signup")}
+          >
+            Create One
+          </span>
+        </CardFooter>
       </Card>
     </div>
   );
