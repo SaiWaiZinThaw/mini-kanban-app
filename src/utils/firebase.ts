@@ -54,8 +54,24 @@ const deleteTask = async (taskId: string) => {
     console.error("Error deleting task:", error);
   }
 };
+
+const updateTask = async (userId: string, updatedData: any) => {
+  try {
+    const taskRef = doc(db, "tasks", updatedData.id);
+    await updateDoc(taskRef, {
+      title: updatedData.title,
+      description: updatedData.description,
+      status: updatedData.status,
+      userId,
+    });
+  } catch (err: any) {
+    console.error("Error updating task:", err.message);
+  }
+};
+
 export {
   createTask,
+  updateTask,
   deleteTask,
   db,
   auth,

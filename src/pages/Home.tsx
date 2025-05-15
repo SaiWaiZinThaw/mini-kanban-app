@@ -19,9 +19,9 @@ const Home = () => {
     return <Auth />;
   }
   return (
-    <div className="p-5">
+    <div className="md:p-5 p-2">
       <div className="flex items-center w-full justify-between mb-8">
-        <h1 className="text-4xl text-center font-bold justify-self-center  uppercase ">
+        <h1 className="md:text-4xl text-lg text-center font-bold justify-self-center  uppercase ">
           Task Management App
         </h1>
         <Button onClick={handleSignOut}>Sign Out</Button>

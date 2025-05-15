@@ -10,7 +10,6 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { TaskCreateSchema } from "@/utils/schema/schema";
 import { Input } from "./ui/input";
-import { Button } from "./ui/button";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -22,6 +21,10 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertDialogDescription } from "@radix-ui/react-alert-dialog";
 import { LucidePencil, X } from "lucide-react";
+import { auth, db, doc, updateDoc } from "@/utils/firebase";
+import { useAuthState } from "react-firebase-hooks/auth";
+import LoadingButton from "./loading-button";
+import { toast } from "sonner";
 
 const TaskEditDialog = ({
   tasks,
@@ -32,6 +35,7 @@ const TaskEditDialog = ({
   tasks: TaskType[];
   setTasks: React.Dispatch<React.SetStateAction<TaskType[]>>;
 }) => {
+  const [user] = useAuthState(auth);
   const form = useForm<z.infer<typeof TaskCreateSchema>>({
     resolver: zodResolver(TaskCreateSchema),
     defaultValues: {
@@ -42,13 +46,11 @@ const TaskEditDialog = ({
   });
 
   const [open, setOpen] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen) {
-      // Find the latest version of the task from the updated tasks list
       const latestTask = tasks.find((task) => task.id === initialTask.id);
       if (latestTask) {
-        // Reset the form with the latest task data
         form.reset({
           title: latestTask.title,
           description: latestTask.description,
@@ -59,16 +61,35 @@ const TaskEditDialog = ({
     setOpen(newOpen);
   };
 
-  const onSubmit = (values: z.infer<typeof TaskCreateSchema>) => {
-    const taskIndex = tasks.findIndex((task) => task.id === initialTask.id);
+  const onSubmit = async (values: z.infer<typeof TaskCreateSchema>) => {
+    if (!user) return;
 
-    if (taskIndex !== -1) {
-      const updatedTasks = [...tasks];
-      updatedTasks[taskIndex] = { ...updatedTasks[taskIndex], ...values };
-      setTasks(updatedTasks);
+    const taskId = initialTask.id;
+    setLoading(true);
+    try {
+      const taskRef = doc(db, "tasks", taskId);
+      await updateDoc(taskRef, {
+        title: values.title,
+        description: values.description,
+        status: values.status,
+      });
+
+      const taskIndex = tasks.findIndex((task) => task.id === taskId);
+
+      if (taskIndex !== -1) {
+        const updatedTasks = [...tasks];
+        updatedTasks[taskIndex] = { ...updatedTasks[taskIndex], ...values };
+        setTasks(updatedTasks);
+      }
+
+      setOpen(false);
+    } catch (err: any) {
+      console.error("Error updating task:", err.message);
+      alert("Failed to update task. Check console for details.");
+    } finally {
+      setLoading(false);
+      toast("Task updated successfully");
     }
-
-    setOpen(false);
   };
 
   return (
@@ -120,7 +141,7 @@ const TaskEditDialog = ({
               )}
             />
 
-            <Button type="submit">Edit</Button>
+            <LoadingButton isLoading={loading}>Edit</LoadingButton>
           </form>
         </Form>
       </AlertDialogContent>

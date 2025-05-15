@@ -12,6 +12,7 @@ import {
 import { Button } from "./ui/button";
 import LoadingButton from "./loading-button";
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 const DeleteConfirmButton = ({ id }: { id: string }) => {
   const [onOpenChange, setOnOpenChange] = useState(false);
@@ -25,6 +26,7 @@ const DeleteConfirmButton = ({ id }: { id: string }) => {
       console.error("Failed to delete task");
     } finally {
       setLoading(false);
+      toast("Task deleted successfully");
     }
   };
   return (

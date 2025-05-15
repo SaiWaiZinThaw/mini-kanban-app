@@ -8,7 +8,7 @@ import {
 } from "./ui/card";
 import { RiDraggable } from "react-icons/ri";
 import { cn } from "@/lib/utils";
-import { CheckCheck, Circle, Clock } from "lucide-react";
+import { CheckCheck, Clock, NotepadText } from "lucide-react";
 import TaskEditDialog from "./task-edit-dialog";
 import { cva } from "class-variance-authority";
 import DeleteConfirmButton from "./delete-confirm-button";
@@ -47,7 +47,7 @@ const TaskCard = ({
       ) : variant === "done" ? (
         <CheckCheck className="absolute top-2 left-2 w-5 h-5 text-black font-bold" />
       ) : (
-        <Circle
+        <NotepadText
           className="absolute top-2 left-2 w-5 h-5 text-black font-bold"
           strokeWidth={2}
         />
