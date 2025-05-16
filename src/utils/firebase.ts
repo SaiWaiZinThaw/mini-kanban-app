@@ -21,13 +21,13 @@ import {
 import type { TaskType } from "./types/type";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDX8NvWaoLkzRCoJYr7gmO_Puu3YH9YRi4",
-  authDomain: "to-do-app-b6304.firebaseapp.com",
-  projectId: "to-do-app-b6304",
-  storageBucket: "to-do-app-b6304.firebasestorage.app",
-  messagingSenderId: "1027200460343",
-  appId: "1:1027200460343:web:cb9fb5ec8fd7a838a241b2",
-  measurementId: "G-PZKGDGGP36",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);
